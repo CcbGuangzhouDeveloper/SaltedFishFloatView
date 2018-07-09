@@ -1,0 +1,126 @@
+apply plugin: 'com.android.library'
+//上传jcenter
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+android {
+    compileSdkVersion 28
+
+
+
+    defaultConfig {
+        minSdkVersion 17
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        archivesBaseName = "floatview" //add artifact id
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+/*
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+    options.addStringOption('charSet', 'UTF-8')
+}
+
+apply from: "https://raw.githubusercontent.com/panpf/android-library-publish-to-jcenter/master/bintrayUpload.gradle"*/
+
+
+version = "1.0.0"
+
+def siteUrl = 'https://github.com/luohaohaha/SaltedFishFloatView'    // project homepage
+def gitUrl = 'https://github.com/luohaohaha/SaltedFishFloatView.git' // project git
+def issueUrl = 'https://github.com/luohaohaha/SaltedFishFloatView/issues'
+
+group = "com.saltedfish"
+
+//打包javadocjar和sourcejar
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+
+    //增加编码，这行很重要，如果是windows系统，同时如果在代码中有中文的话，不加这行，上传会报错
+    options.encoding="utf-8"
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+tasks.getByPath(":floatview:javadoc").enabled = false
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+//定义pom并打包aar
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                name 'SaltedFishFloatView'
+                url siteUrl
+                // Set your license
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer { //填写的一些基本信息
+                        id 'luohaohaha16'
+                        name 'luohaohaha16'
+                        email 'luohaohaha@hotmail.com'
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+
+//上传到Jcenter仓库
+
+//配置bintray参数
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+
+    configurations = ['archives']
+    pkg {
+        repo = "saltedfish"               //跟上面创建的Maven仓库名字保持一致
+        name = 'SaltedFishFloatView'               //发布到JCenter上的项目名字
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["Apache-2.0"]
+        publish = true
+    }
+}
