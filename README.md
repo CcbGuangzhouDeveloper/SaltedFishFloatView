@@ -23,7 +23,6 @@ Or Maven:
   <version>1.0.0</version>
   <type>pom</type>
 </dependency>
-}
 ```
 
 You can also do it manually, by downloading the source code, importing the `library` folder as an Android Library Module, and adding a dependency on your project to that module.
